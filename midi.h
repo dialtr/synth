@@ -9,6 +9,9 @@
 
 #include "status.h"
 
+// The baud rate for MIDI data
+#define MIDI_BAUD_RATE  31250
+
 #define SYS_REALTIME_TIMING_CLOCK  0xf8  // Timing clock sent 24 times/quarter.
 #define SYS_REALTIME_RESERVED_F9   0xf9  // Undefined (Reserved.)
 #define SYS_REALTIME_SEQ_START     0xfa  // Start the current sequence.
@@ -23,11 +26,14 @@
  * The midi_event_callback_t type defines a type for event callback functions
  * to be invoked on the receipt of MIDI messages. The caller only needs to
  * register functions for those events for which there is interest.
- * Unhandled events will be dispatcher to a null handler implemented within
+ * Unhandled events will be dispatched to a null handler implemented within
  * the library.
  */
 typedef void (*midi_event_callback_t)(char, char);
 
+typedef enum midi_errors {
+    E_MIDI_BAD_EVENT_HANDLER = -1
+};
 
 typedef enum event_type {
     EVT_SYS_REALTIME_TIMING_CLOCK = 1,
@@ -51,7 +57,8 @@ status_t midi_init();
 
 
 /**
- * Register an event handler for the specified event. 
+ * Register an event handler for the specified event. To clear an event
+ * handle, simply pass a NULL pointer for the callback argument.
  * 
  * Returns  1 if a callback was registered successfully.
  * Returns  0 if a callback was cleared.

@@ -39,6 +39,7 @@ static char g_status_byte = 0;
 static char g_data_byte_one = 0;
 static char g_data_byte_two = 0;
 static char g_data_byte_counter = 0;
+static unsigned long g_event_counter = 0;
 
 
 /*
@@ -47,9 +48,10 @@ static char g_data_byte_counter = 0;
 
 // The null event callback is used by default for all events.
 static void null_event_cb(char a, char b) {
-    // TODO(tdial): Increment global debugging/event counter.
-    // Intentionally empty.
+    // Just implement the event counter.
+    ++g_event_counter;
 }
+
 
 static midi_event_callback_t invoke_sys_realtime_timing_clock = null_event_cb;
 static midi_event_callback_t invoke_sys_realtime_reserved_f9 = null_event_cb;
@@ -135,7 +137,58 @@ status_t midi_init() {
 
 
 status_t midi_register_event_handler(event_type evt, midi_event_callback_t cb) {
-    return 0;    
+    // In most cases, we will want to return 1 indicating registration.
+    status_t status = 1;
+    
+    // To clear a callback, the callers specifies NULL for the callback
+    // pointer. However, we really want to restore the null_event_cb
+    // function so that dummy events are
+    if (cb == 0) {
+        // Restore the handler in the table to the null event callback.
+        cb = null_event_cb;
+        
+        // We're clearing the callback, so we return zero.
+        status = 0;
+    }
+    
+    switch (evt) {
+        case EVT_SYS_REALTIME_TIMING_CLOCK:
+            invoke_sys_realtime_timing_clock = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_RESERVED_F9:
+            invoke_sys_realtime_reserved_f9 = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_SEQ_START:
+            invoke_sys_realtime_seq_start = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_SEQ_CONTINUE:
+            invoke_sys_realtime_seq_continue = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_SEQ_STOP:
+            invoke_sys_realtime_seq_stop = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_RESERVED_FD:
+            invoke_sys_realtime_reserved_fd = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_ACTIVE_SENSE:
+            invoke_sys_realtime_active_sense = cb;
+            break;
+            
+        case EVT_SYS_REALTIME_RESET:
+            invoke_sys_realtime_reset = cb;
+            break;
+            
+        default:
+            return E_MIDI_BAD_EVENT_HANDLER;
+    }
+    
+    return status;    
 }
 
 

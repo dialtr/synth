@@ -32,8 +32,20 @@
 
 
 // Perform initial system initialization.
-status_t init() {
-    // TODO(tdial): Implement
+status_t system_init() {
+    status_t status = 0;
+    
+    status = ioport_init(MIDI_BAUD_RATE);
+    if (status) {
+        return status;
+    }
+    
+    // Initialize MIDI library.
+    status = midi_init();
+    if (status) {
+        return status;
+    }
+    
     return 0;
 }
 
@@ -45,12 +57,16 @@ void error() {
 
 // Main event handler and dispatcher; runs continuously.
 void loop() {
-    // TODO(tdial): Implement
+    char byte = 0;
+    if (ioport_data_ready()) {
+        byte = ioport_read();
+        midi_receive_byte(byte);
+    }
 }
 
 // Entry Point
 void main(void) {
-    char status = init();
+    status_t status = system_init();
     if (status) {
         error();
     } 
