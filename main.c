@@ -32,7 +32,7 @@
 
 
 // Perform initial system initialization.
-char init() {
+status_t init() {
     // TODO(tdial): Implement
     return 0;
 }
