@@ -30,7 +30,7 @@ Benefits of the DCO approach include unparalleled pitch stability as well
 as the potential for the implementation of precise microtonal tuning
 tables.
 
-### Dedicated Envelope Generators
+### Dedicated Envelope Generator for the VCA
 
 Early MIDI-controlled analog synthesizers (such as the Roland Juno-106 and
 the Oberheim Matrix 1000) computed envelopes entirely in software which
@@ -38,10 +38,12 @@ reduced part count and made rich modulation capabilities possible.
 However, software-based envelopes tended to be sluggish due to the fact
 that the microcontrollers used were saddled with other duties.
 
-The DIAL-1 employs two dedicated envelope generators, one for the VCF and
-one for the VCA. The envelope generators are in fact PIC16-series ICs
-running a highly optimized envelope generation routine that allows for
-fast (~1ms) response times.
+For this reason, in the prototype of the DIAL-1, a dedicated envelope
+generator will be used to control the VCA. (The envelope generator is in
+fact a PIC16-series microcontroller running a highly optimized envelope
+generation routine that allows for fast (~1ms) response times.
+
+
 
 ### Noise Generator
 
