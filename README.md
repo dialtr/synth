@@ -57,3 +57,12 @@ with resonance and cutoff. The filter can be driven to self oscillation.
 
 ## Software
 
+The DIAL-1 system software is written in C using Microchip Technologies'
+MPLABX IDE in conjunction with their XC8 compiler for 8-bit PIC products.
+
+Currently, the software is structured into modules that are intended to
+be reusable:
+
+* IOPORT - Routines for initializing and reading/writing from the USART
+* MIDI - Routines for handling MIDI data
+
