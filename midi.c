@@ -14,7 +14,10 @@
 
 #define SYS_REALTIME_MASK    0xf8
 #define SYS_COMMON_MASK      0xf0
-#define CHAN_MASK            0x80
+#define CHAN_STATUS_MASK     0x80  // Leading bit pattern for channel status
+
+#define CHAN_TYPE_MASK       0xf0  // Mask for extracting channel msg type
+#define CHAN_MASK            0x0f  // Mask for extracting channel number
 
 
 /**
@@ -30,6 +33,14 @@
 #define SYS_REALTIME_ACTIVE_SENSE  0xfe  // Active sensing message (each 300ms.)
 #define SYS_REALTIME_RESET         0xff  // Reset all receivers to power-up.
 
+/**
+ * Define channel voice message types. These
+ */
+#define CHAN_NOTE_OFF
+#define CHAN_NOTE_ON
+#define CHAN_POLY_KEY
+#define CHAN_CONTROL_CHANGE
+
 
 /**
  * Globals that hold current MIDI state.
@@ -39,6 +50,7 @@ static char g_status_byte = 0;
 static char g_data_byte_one = 0;
 static char g_data_byte_two = 0;
 static char g_data_byte_counter = 0;
+
 static unsigned long g_event_counter = 0;
 
 
@@ -116,7 +128,13 @@ static status_t rx_status_sys_common_byte(char byte) {
 
 // Process a "channel" status byte. (1 or 2 data bytes follow.)
 static status_t rx_status_channel_byte(char byte) {
+    const char type = (byte & CHAN_TYPE_MASK);
     g_status_byte = byte;    
+    
+    switch (type) {
+        
+    }
+    
     return 0;
 }
 
@@ -207,7 +225,7 @@ status_t midi_receive_byte(char byte) {
     } else if ((byte & SYS_COMMON_MASK) == SYS_COMMON_MASK) {
         // The byte is a system common status byte.
         return rx_status_sys_common_byte(byte);
-    } else if (byte & CHAN_MASK) {
+    } else if (byte & CHAN_STATUS_MASK) {
         // The byte is a channel voice or channel mode status byte.
         return rx_status_channel_byte(byte);
     } else {
