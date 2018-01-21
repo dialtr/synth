@@ -60,8 +60,7 @@ status_t midi_init();
  * Register an event handler for the specified event. To clear an event
  * handle, simply pass a NULL pointer for the callback argument.
  * 
- * Returns  1 if a callback was registered successfully.
- * Returns  0 if a callback was cleared.
+ * Returns  0 if a callback was registered or cleare successfully.
  * Returns -1 if the event type was invalid.
  * 
  * @param evt Event to register. See the EVT_xxx enumeration above.
@@ -85,8 +84,6 @@ status_t midi_register_event_handler(event_type evt, midi_event_callback_t cb);
  * @return Number of callback invocations. Returns negative status on error.
  */
 status_t midi_receive_byte(char byte);
-
-
 
 
 #endif  // MIDI_H_INCLUDED_

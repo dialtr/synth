@@ -137,8 +137,8 @@ status_t midi_init() {
 
 
 status_t midi_register_event_handler(event_type evt, midi_event_callback_t cb) {
-    // In most cases, we will want to return 1 indicating registration.
-    status_t status = 1;
+    // In most cases, we will want to return 0 indicating success.
+    status_t status = 0;
     
     // To clear a callback, the callers specifies NULL for the callback
     // pointer. However, we really want to restore the null_event_cb
@@ -146,9 +146,6 @@ status_t midi_register_event_handler(event_type evt, midi_event_callback_t cb) {
     if (cb == 0) {
         // Restore the handler in the table to the null event callback.
         cb = null_event_cb;
-        
-        // We're clearing the callback, so we return zero.
-        status = 0;
     }
     
     switch (evt) {

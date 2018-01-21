@@ -30,11 +30,47 @@
 #pragma config BOREN = 0
 
 
+// Report error state using a system peripheral
+void error(status_t c) {
+    PORTB = c;
+    PORTDbits.RD0 = 1;
+    // TODO(tdial): Implement
+    for (;;);
+}
+
+
+void on_midi_active_sensing(char, char) {
+    PORTDbits.RD1 = 1;
+    for (int i = 0; i < 32; ++i) {
+        Nop();
+    }
+    
+    PORTDbits.RD1 = 0;
+}
+
+
+// Configure I/O pins used in the system, set them to their initial state.
+status_t iopins_init() {
+    TRISB = 0;
+    PORTB = 0;
+    
+    TRISD = 0;
+    PORTD = 0;
+    
+    return 0;
+}
 
 // Perform initial system initialization.
 status_t system_init() {
     status_t status = 0;
     
+    // Configure and initialize I/O pins used in the system.
+    status = iopins_init();
+    if (status) {
+        return status;
+    }
+    
+    // Initialize the USART for receive / transmit.
     status = ioport_init(MIDI_BAUD_RATE);
     if (status) {
         return status;
@@ -45,15 +81,17 @@ status_t system_init() {
     if (status) {
         return status;
     }
+
+    status = midi_register_event_handler(EVT_SYS_REALTIME_ACTIVE_SENSE,
+                                         on_midi_active_sensing);
+    if (status) {
+        return status;
+    }
     
     return 0;
 }
 
-// Report error state using a system peripheral
-void error() {
-    // TODO(tdial): Implement
-    for (;;);
-}
+
 
 // Main event handler and dispatcher; runs continuously.
 void loop() {
@@ -68,7 +106,7 @@ void loop() {
 void main(void) {
     status_t status = system_init();
     if (status) {
-        error();
+        error(status);
     } 
     
     for (;;) {
