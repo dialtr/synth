@@ -8,6 +8,8 @@
       <itemPath>status.h</itemPath>
       <itemPath>config.h</itemPath>
       <itemPath>ioport.h</itemPath>
+      <itemPath>intel8254.h</itemPath>
+      <itemPath>midi_notes.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -19,6 +21,8 @@
       <itemPath>main.c</itemPath>
       <itemPath>midi.c</itemPath>
       <itemPath>ioport.c</itemPath>
+      <itemPath>intel8254.c</itemPath>
+      <itemPath>midi_notes.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -37,7 +41,7 @@
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC8</languageToolchain>
         <languageToolchainVersion>1.45</languageToolchainVersion>
-        <platform>2</platform>
+        <platform>4</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
