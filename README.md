@@ -1,3 +1,5 @@
+![Prototype](images/prototype.jpg)
+
 # DIAL-1 Synthesizer
 
 This project contains the source code for my first synthesizer design. An
