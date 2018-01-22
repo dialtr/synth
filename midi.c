@@ -258,10 +258,11 @@ static status_t rx_data_byte(char byte) {
             break;
             
         // Process second byte of a "note off" message, and invoke callback.
+        // We reset the state in case there is a "running state" note off.
         case STATE_WAITING_CHAN_NOTE_OFF_VELOCITY:
             g_data_byte_two = byte;
             invoke_callback(EVT_CHAN_NOTE_OFF);
-            // TODO(tdial): Update state? we could get another one of these..
+            g_state = STATE_WAITING_CHAN_NOTE_OFF_KEY;
             return 1;
             
         // Process first byte of a "note on" message.
@@ -274,7 +275,7 @@ static status_t rx_data_byte(char byte) {
         case STATE_WAITING_CHAN_NOTE_ON_VELOCITY:
             g_data_byte_two = byte;
             invoke_callback(EVT_CHAN_NOTE_ON);
-            // TODO(tdial): Update state? we could get another one of these..
+            g_state = STATE_WAITING_CHAN_NOTE_ON_KEY;
             return 1;
             
         // Process first byte of a poly after-touch message.    
@@ -287,6 +288,7 @@ static status_t rx_data_byte(char byte) {
         case STATE_WAITING_CHAN_POLY_AFTERTOUCH_PRESSURE:
             g_data_byte_two = byte;
             invoke_callback(EVT_CHAN_POLY_AFTERTOUCH);
+            g_state = STATE_WAITING_CHAN_POLY_AFTERTOUCH_KEY;
             return 1;
         
         // Process first byte of a channel control change message.
@@ -299,6 +301,7 @@ static status_t rx_data_byte(char byte) {
         case STATE_WAITING_CHAN_CONTROL_CHANGE_VALUE:    
             g_data_byte_two = byte;
             invoke_callback(EVT_CHAN_CONTROL_CHANGE);
+            g_state = STATE_WAITING_CHAN_CONTROL_CHANGE_CONTROL;
             return 1;
             
         // Process program change, invoke callback.
@@ -306,6 +309,7 @@ static status_t rx_data_byte(char byte) {
             g_data_byte_one = byte;
             g_data_byte_two = 0;
             invoke_callback(EVT_CHAN_PROGRAM_CHANGE);
+            // Leave state intact in case there is another via running status.
             return 1;
         
         // Process channel after-touch message, invoke callback.     
@@ -313,6 +317,7 @@ static status_t rx_data_byte(char byte) {
             g_data_byte_one = byte;
             g_data_byte_two = 0;
             invoke_callback(EVT_CHAN_AFTERTOUCH);
+            // Leave state intact in case there is another via running status.
             return 1;
         
         // Process first byte of pitch bend.    
@@ -325,13 +330,14 @@ static status_t rx_data_byte(char byte) {
         case STATE_WAITING_CHAN_PITCH_BEND_MSBITS:
             g_data_byte_two = byte;
             invoke_callback(EVT_CHAN_PITCH_BEND);
+            g_state = STATE_WAITING_CHAN_PITCH_BEND_LSBITS;
             return 1;
         
         // Handle bad state.    
         default:
             g_data_byte_one = 0;
             g_data_byte_two = 0;
-            // What to do?
+            // TODO(tdial): Do we have to touch the state?
             break;
     }
     
