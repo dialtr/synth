@@ -39,7 +39,7 @@ void error(status_t c) {
 }
 
 
-void on_midi_active_sensing(char, char) {
+void on_midi_active_sensing(char, char, char) {
     PORTDbits.RD1 = 1;
     for (int i = 0; i < 32; ++i) {
         Nop();

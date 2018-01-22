@@ -29,21 +29,35 @@
  * Unhandled events will be dispatched to a null handler implemented within
  * the library.
  */
-typedef void (*midi_event_callback_t)(char, char);
+typedef void (*midi_event_callback_t)(char chan, char data1, char data2);
 
 typedef enum midi_errors {
-    E_MIDI_BAD_EVENT_HANDLER = -1
+    E_MIDI_BAD_EVENT_HANDLER = -1,
+    E_MIDI_BAD_CHANNEL_STATE = -2
 };
 
 typedef enum event_type {
-    EVT_SYS_REALTIME_TIMING_CLOCK = 1,
-    EVT_SYS_REALTIME_RESERVED_F9 = 2,
-    EVT_SYS_REALTIME_SEQ_START = 3,
-    EVT_SYS_REALTIME_SEQ_CONTINUE = 4,
-    EVT_SYS_REALTIME_SEQ_STOP = 5,
-    EVT_SYS_REALTIME_RESERVED_FD = 6,
-    EVT_SYS_REALTIME_ACTIVE_SENSE = 7,
-    EVT_SYS_REALTIME_RESET = 8
+    // System real-time messages
+    EVT_SYS_REALTIME_TIMING_CLOCK = 0,
+    EVT_SYS_REALTIME_RESERVED_F9 = 1,
+    EVT_SYS_REALTIME_SEQ_START = 2,
+    EVT_SYS_REALTIME_SEQ_CONTINUE = 3,
+    EVT_SYS_REALTIME_SEQ_STOP = 4,
+    EVT_SYS_REALTIME_RESERVED_FD = 5,
+    EVT_SYS_REALTIME_ACTIVE_SENSE = 6,
+    EVT_SYS_REALTIME_RESET = 7,
+    
+    // Channel messages
+    EVT_CHAN_NOTE_OFF = 8,
+    EVT_CHAN_NOTE_ON = 9,
+    EVT_CHAN_POLY_AFTERTOUCH = 10,
+    EVT_CHAN_CONTROL_CHANGE = 11,
+    EVT_CHAN_PROGRAM_CHANGE = 12,
+    EVT_CHAN_AFTERTOUCH = 13,
+    EVT_CHAN_PITCH_BEND = 14,
+    
+    // Not a valid event
+    EVT_MAX
 } event_type;
 
 
