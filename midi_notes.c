@@ -11,7 +11,7 @@
 
 // TODO(tdial): Add note names/numbers in comments below.
 
-const int MIDI_NOTE_FREQUENCY_TABLE[] = {
+extern const int MIDI_NOTE_FREQUENCY_TABLE[] = {
     8,
     9,
     9,

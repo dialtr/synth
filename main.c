@@ -10,8 +10,10 @@
  */
 #include <xc.h>
 #include "config.h"
+#include "intel8254.h"
 #include "ioport.h"
 #include "midi.h"
+#include "midi_notes.h"
 #include "status.h"
 
 // Here, we are configuring various settings on the PIC18. The most important
@@ -32,7 +34,6 @@
 
 // Report error state using a system peripheral
 void error(status_t c) {
-    PORTB = c;
     PORTDbits.RD0 = 1;
     // TODO(tdial): Implement
     for (;;);
@@ -48,6 +49,44 @@ void on_midi_active_sensing(char, char, char) {
     PORTDbits.RD1 = 0;
 }
 
+
+void on_midi_note_off(char chan, char key, char val) {
+    intel_8254_set_timer0(1, 0);
+}
+
+// Convert a frequency to the counter values needed to generate it, assuming
+// the master DCO clock frequency is fixed at 2 mhz.
+// TODO(tdial): Don't assume 2mhz
+void tone_to_counter_values(long freq,
+                            unsigned char* lsb, 
+                            unsigned char* msb)
+{
+  const unsigned long clock = 2000000;
+  const unsigned long divisor = clock / freq;
+  *lsb = (unsigned char) (divisor & 0xff);
+  *msb = (unsigned char) ((divisor >> 8) & 0xff);
+}
+
+void on_midi_note_on(char chan, char key, char vel) {
+    // Instruments sometimes send "note off" messages as note on messages
+    // with a velocity of zero. Check here for that condition and delegate
+    // to the handler for note off.
+    if (vel == 0) {
+        on_midi_note_off(chan, key, vel);
+        return;
+    }
+    
+    char lsb = 0;
+    char msb = 0;
+    
+    // Given the MIDI note, which frequency should we be playing?
+    const long int freq = midi_note_frequency_for_note(key);
+    if (freq > 32) {
+        tone_to_counter_values(freq, &lsb, &msb);
+    }
+    
+    intel_8254_set_timer0(lsb, msb);
+}
 
 // Configure I/O pins used in the system, set them to their initial state.
 status_t iopins_init() {
@@ -76,14 +115,30 @@ status_t system_init() {
         return status;
     }
     
+    // Initialize the Intel 8254 Timer 
+    status = intel_8254_init();
+    if (status) {
+        return status;
+    }
+    
     // Initialize MIDI library.
     status = midi_init();
     if (status) {
         return status;
     }
-
+    
     status = midi_register_event_handler(EVT_SYS_REALTIME_ACTIVE_SENSE,
                                          on_midi_active_sensing);
+
+    status = midi_register_event_handler(EVT_CHAN_NOTE_OFF,
+                                         on_midi_note_off);
+
+    status = midi_register_event_handler(EVT_CHAN_NOTE_ON,
+                                         on_midi_note_on);
+    
+    // TODO(tdial): Eliminate
+    on_midi_note_off(0, 0, 0);
+    
     if (status) {
         return status;
     }
