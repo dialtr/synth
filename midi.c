@@ -7,17 +7,18 @@
 #include "midi.h"
 #include <xc.h>
 
+
 /*
  * Masks / patterns that define leading high bits; these are used to 
  * determine what type of status message has been received.
  */
 
-#define SYS_REALTIME_MASK    0xf8
-#define SYS_COMMON_MASK      0xf0
-#define CHAN_STATUS_MASK     0x80  // Leading bit pattern for channel status
+#define SYS_REALTIME_MASK          0xf8
+#define SYS_COMMON_MASK            0xf0
+#define CHAN_STATUS_MASK           0x80
 
-#define CHAN_TYPE_MASK       0xf0  // Mask for extracting channel msg type
-#define CHAN_MASK            0x0f  // Mask for extracting channel number
+#define CHAN_TYPE_MASK             0xf0  // Mask for extracting channel msg type
+#define CHAN_MASK                  0x0f  // Mask for extracting channel number
 
 
 /**
@@ -46,6 +47,7 @@
 #define CHAN_PROGRAM_CHANGE        0xc0
 #define CHAN_AFTER_TOUCH           0xd0
 #define CHAN_PITCH_BEND            0xe0
+
 
 /**
  * Enumeration that represents the states that the MIDI protocol
@@ -88,33 +90,37 @@ enum PROTOCOL_STATE {
 };
 
 /**
- * Globals that hold current MIDI state.
+ * Globals that hold current MIDI state. For now, these are globals. If
+ * there is a desire to allow the library to manage more than one MIDI
+ * interface, they could be placed into a structure; other routines that
+ * access the globals would have to be updated accordingly.
  */
-
-static char g_debug_last_status_byte = 0;
-static char g_debug_last_data_byte = 0;
-
-// The MIDI channel associated with the current state.
-static char g_current_channel = 0;
-static char g_data_byte_one = 0;
-static char g_data_byte_two = 0;
-static char g_data_byte_counter = 0;
-
-static unsigned long g_event_counter = 0;
 
 // State of the "MIDI protocol state machine"
 static char g_state = STATE_WAITING_FOR_STATUS;
+
+// Last bytes received, saved for debugging.
+static char g_debug_last_status_byte = 0;
+static char g_debug_last_data_byte = 0;
+
+// The following three variables are updated during message parsing.
+static char g_current_channel = 0;
+static char g_data_byte_one = 0;
+static char g_data_byte_two = 0;
+
+// Counter that records number of complete MIDI messages received.
+static unsigned long g_message_counter = 0;
+
+
+// Callback table.
+static midi_event_callback_t g_callbacks[EVT_MAX] = {0};
 
 
 // The null event callback is used by default for all events.
 static void null_event_cb(char channel, char a, char b) {
     // Just implement the event counter.
-    ++g_event_counter;
+    ++g_message_counter;
 }
-
-
-// Callback table.
-static midi_event_callback_t g_callbacks[EVT_MAX] = {0};
 
 
 // Wrapper that invokes callback functions.
@@ -125,7 +131,7 @@ static inline void invoke_callback(int evt) {
     }
     
     // Increment the global event counter.
-    ++g_event_counter;
+    ++g_message_counter;
     
     // Invoke the callback.
     (g_callbacks[evt])(g_current_channel, g_data_byte_one, g_data_byte_two);
@@ -136,9 +142,9 @@ static inline void invoke_callback(int evt) {
 }
 
 
-/*
- * Internal APIs
- */
+/****************************************************************************
+ * Internal APIs                                                            *
+ ****************************************************************************/
 
 /**
  * Process a "system real-time" message, which has no data bytes.
@@ -334,9 +340,9 @@ static status_t rx_data_byte(char byte) {
 }
 
 
-/*
- * Public APIs 
- */
+/****************************************************************************
+ * Public APIs                                                              *
+ ****************************************************************************/
 
 
 status_t midi_init() {
