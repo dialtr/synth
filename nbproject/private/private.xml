@@ -9,9 +9,12 @@
             <file>file:/Users/tdial/Projects/synth/midi.c</file>
             <file>file:/Users/tdial/Projects/synth/config.h</file>
             <file>file:/Users/tdial/Projects/synth/ioport.c</file>
+            <file>file:/Users/tdial/Projects/synth/nbproject/Makefile-impl.mk</file>
             <file>file:/Users/tdial/Projects/synth/midi_notes.c</file>
+            <file>file:/Users/tdial/Projects/synth/main.c</file>
             <file>file:/Users/tdial/Projects/synth/ioport.h</file>
             <file>file:/Users/tdial/Projects/synth/intel8254.c</file>
+            <file>file:/Users/tdial/Projects/synth/midi.h</file>
         </group>
     </open-files>
 </project-private>

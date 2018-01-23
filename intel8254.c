@@ -8,10 +8,10 @@
 #include "intel8254.h"
 #include <xc.h>
 
-#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
+#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); /* Nop(); Nop(); Nop(); Nop();\
+                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();
                   Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()
+                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()*/
 
 
 // Initialize the Intel 8254 timer to a known state.
