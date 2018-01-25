@@ -32,14 +32,15 @@
 #pragma config BOREN = 0
 
 static int g_notes_on = 0;
-static long int g_freq = 0;     // The last note base frequency
-static long int g_target_freq = 0;
-static long int g_pitch_bend = 0; // Last value of pitch bender
+
+static long int g_base_freq = 20000;
+static long int g_pitch_bend = 0; 
+static char g_update_frequency = 0;
 
 void on_note_off() {
     --g_notes_on;
     if (g_notes_on <= 0) {
-        intel_8254_set_timer0(1, 0);
+        INTEL_8254_WRITE_TIMER(0, 1, 0);
         g_notes_on = 0;
     }
 }
@@ -51,10 +52,6 @@ void error(status_t c) {
     for (;;);
 }
 
-void pulse_midi_indicator() {
-    PORTDbits.RD0 = 1;
-    PORTDbits.RD0 = 0;
-}
 
 void on_midi_active_sensing(char, char, char) {
     // TODO(tdial): Update event watchdog timer; if we don't get any
@@ -65,9 +62,9 @@ void on_midi_active_sensing(char, char, char) {
 
 void on_midi_note_off(char chan, char key, char val) {
     on_note_off();
-    pulse_midi_indicator();
 }
 
+/*
 // Convert a frequency to the counter values needed to generate it, assuming
 // the master DCO clock frequency is fixed at 2 mhz.
 // TODO(tdial): Don't assume 2mhz
@@ -80,16 +77,35 @@ void tone_to_counter_values(long freq,
   *lsb = (unsigned char) (divisor & 0xff);
   *msb = (unsigned char) ((divisor >> 8) & 0xff);
 }
+*/
 
-void set_oscillator_frequency() {
-    long freq = g_freq + ((g_freq * g_pitch_bend) / 32768);
-    if (freq < 32) freq = 32;
-    if (freq > 20000) freq = 20000;
-    char lsb = 0;
-    char msb = 0;
-    tone_to_counter_values(freq, &lsb, &msb);
-    intel_8254_set_timer0(lsb, msb);
+long calc_oscillator_frequency(long base_freq, long bender) {
+    long new_freq = 0;
+    if (bender < (8192 - 20)) {
+        new_freq = (base_freq * (bender + 8192)) / 16384;
+        if (new_freq < 34) {
+            new_freq = 34;
+        }
+    } else if (bender > (8192 + 20)) {
+        new_freq = (base_freq * bender) / 8192;
+        if (new_freq > 20000) {
+            new_freq = 20000;
+        }
+    } else {
+        return base_freq;
+    }
+    return new_freq;
 }
+
+
+void set_oscillator_frequency(long freq) {
+    const unsigned long clock = 2000000;
+    const unsigned long divisor = clock / freq;
+    const char lsb = (unsigned char) (divisor & 0xff);
+    const char msb = (unsigned char) ((divisor >> 8) & 0xff);
+    INTEL_8254_WRITE_TIMER(0,lsb,msb);
+}
+
 
 void on_midi_note_on(char chan, char key, char vel) {
     // Instruments sometimes send "note off" messages as note on messages
@@ -100,7 +116,6 @@ void on_midi_note_on(char chan, char key, char vel) {
         return;
     }
     
-    pulse_midi_indicator();
     ++g_notes_on;
     
     char lsb = 0;
@@ -108,11 +123,13 @@ void on_midi_note_on(char chan, char key, char vel) {
     
     // Given the MIDI note, which frequency should we be playing?
     // Calculate the new global frequency and store it there.
-    g_freq = midi_note_frequency_for_note(key);
+    g_base_freq = midi_note_frequency_for_note(key);
     
-    // Now, set the oscillator frequency, which uses the global freq.
+    const long freq = calc_oscillator_frequency(g_base_freq, g_pitch_bend);
+    
+    // Now, set the oscillator frequency, which uses the global frequency.
     // as well as the current pitch bend value.
-    set_oscillator_frequency();
+    set_oscillator_frequency(freq);
 }
 
 // Configure I/O pins used in the system, set them to their initial state.
@@ -133,10 +150,8 @@ void on_pitch_bend(char chan, char lsb, char msb) {
     long pitch_bend = msb;
     pitch_bend <<= 7;
     pitch_bend |= lsb;
-    g_pitch_bend = pitch_bend - 8192;
-    if (g_notes_on > 0) {
-        set_oscillator_frequency();
-    }
+    g_pitch_bend = pitch_bend;
+    g_update_frequency = 1;
 }
 
 // Perform initial system initialization.
@@ -196,6 +211,11 @@ void loop() {
     if (ioport_data_ready()) {
         byte = ioport_read();
         midi_receive_byte(byte);
+    }
+    if (g_update_frequency && g_notes_on) {
+        const long freq = calc_oscillator_frequency(g_base_freq, g_pitch_bend);
+        set_oscillator_frequency(freq);
+        g_update_frequency = 0;
     }
 }
 

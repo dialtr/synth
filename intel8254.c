@@ -8,11 +8,6 @@
 #include "intel8254.h"
 #include <xc.h>
 
-#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); /* Nop(); Nop(); Nop(); Nop();\
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()*/
-
 
 // Initialize the Intel 8254 timer to a known state.
 status_t intel_8254_init() {
@@ -86,7 +81,8 @@ void intel_8254_set_timer0(unsigned char lsb, unsigned char msb) {
   NOPWAIT();
   
   // Bring CS, WR LOW, then HIGH to write control word
-  intel_8254_transfer_data();
+  //intel_8254_transfer_data();
+  INTEL_8254_TRANSFER_DATA();
   
   // Step 2: Write LSB. First, we set A0, A1 to address Timer 0 (both set
   // LOW.) Next, we assert the data pins with the LSB. Finally, we assert
@@ -99,7 +95,9 @@ void intel_8254_set_timer0(unsigned char lsb, unsigned char msb) {
   NOPWAIT(); 
   
   // Bring CS, WR LOW, then HIGH to write control word
-  intel_8254_transfer_data();
+  //intel_8254_transfer_data();
+  INTEL_8254_TRANSFER_DATA();
+  
   
   // Step 3: Write MSB. First, we set A0, A1 to address Timer 0 (both set
   // LOW.) Next, we assert the data pins with the MSB. Finally, we assert
@@ -112,6 +110,7 @@ void intel_8254_set_timer0(unsigned char lsb, unsigned char msb) {
   NOPWAIT(); 
   
   // Bring CS, WR LOW, then HIGH to write control word
-  intel_8254_transfer_data();
+  //intel_8254_transfer_data();
+  INTEL_8254_TRANSFER_DATA();
 }
 
