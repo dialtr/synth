@@ -15,11 +15,14 @@ status_t intel_8254_init();
 // Load a new divisor into timer zero for square-wave clock generation.
 //void intel_8254_set_timer0(unsigned char lsb, unsigned char msb);
 
+#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop()
+
+/*
 #define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
                   Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()/*
-                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();*/
-
+                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();\
+                  Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop();
+*/
 
 #define INTEL_8254_TRANSFER_DATA()\
   PORTDbits.RD2 = 0;\
@@ -30,6 +33,7 @@ status_t intel_8254_init();
   PORTDbits.RD3 = 1;\
   NOPWAIT();\
   PORTDbits.RD2 = 1;\
+  NOPWAIT();\
   NOPWAIT()
 
 
@@ -49,7 +53,9 @@ unsigned char g_last_msbs[3] = {0, 0, 0};
     unsigned ctrl_word_ = (id_ << 6) | (rw_ << 4) | modebits_;\
     PORTDbits.RD4 = 1;\
     PORTDbits.RD5 = 1;\
+    NOPWAIT();\
     PORTB = ctrl_word_;\
+    NOPWAIT();\
     INTEL_8254_TRANSFER_DATA();\
     switch (id_) {\
       case 0:\
@@ -65,12 +71,17 @@ unsigned char g_last_msbs[3] = {0, 0, 0};
         PORTDbits.RD5 = 0;\
         break;\
       }\
+      NOPWAIT();\
       if (rw_ & 0x1) {\
         PORTB = t_lsb;\
+        NOPWAIT();\
         INTEL_8254_TRANSFER_DATA();\
       }\
+      NOPWAIT();\
+      NOPWAIT();\
       if (rw_ & 0x2) {\
         PORTB = t_msb;\
+        NOPWAIT();\
         INTEL_8254_TRANSFER_DATA();\
       }\
   } while(0)

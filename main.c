@@ -79,12 +79,15 @@ void tone_to_counter_values(long freq,
 }
 */
 
+// This is really OSC / 65535
+#define MIN_FREQ 123
+
 long calc_oscillator_frequency(long base_freq, long bender) {
     long new_freq = 0;
     if (bender < (8192 - 20)) {
         new_freq = (base_freq * (bender + 8192)) / 16384;
-        if (new_freq < 34) {
-            new_freq = 34;
+        if (new_freq < MIN_FREQ) {
+            new_freq = MIN_FREQ;
         }
     } else if (bender > (8192 + 20)) {
         new_freq = (base_freq * bender) / 8192;
