@@ -7,6 +7,8 @@
 
 #include "intel8254.h"
 #include <xc.h>
+#include <delays.h>
+#include "config.h"
 
 
 // Initialize the Intel 8254 timer to a known state.
@@ -34,6 +36,21 @@ status_t intel_8254_init() {
     PORTDbits.RD4 = 1; // RD4 on the PIC -> A0 on the 8254
     PORTDbits.RD5 = 1; // RD5 on the PIC -> A1 on the 8254
      
+    // Write control word
+    for (char timer = 0; timer < 3; ++timer) {
+        const unsigned char control_word = (timer << 6) |
+                                           (0x3 << 4) |
+                                           (0b00000110);
+        PORTB = control_word;
+        PORTDbits.RD4 = 1; // RD4 on the PIC -> A0 on the 8254
+        PORTDbits.RD5 = 1; // RD5 on the PIC -> A1 on the 8254
+
+        PORTDbits.RD3 = 0;
+        NOPWAIT();
+        PORTDbits.RD3 = 1;
+       __delay_ms(10);
+    }
+      
     return 0;
 }
 
@@ -127,7 +144,7 @@ inline void intel_write_timer(unsigned char timer,
     if (timer == 3) {
         return;
     }
-    
+    /*
     const unsigned char control_word = (timer << 6) |
                                        (0x3 << 4) |
                                        (0b00000110);
@@ -140,6 +157,7 @@ inline void intel_write_timer(unsigned char timer,
     PORTDbits.RD3 = 0;
     NOPWAIT();
     PORTDbits.RD3 = 1;
+    */
     
         // Set up address for data words
     switch (timer) {
@@ -169,4 +187,5 @@ inline void intel_write_timer(unsigned char timer,
     PORTDbits.RD3 = 0;
     NOPWAIT();
     PORTDbits.RD3 = 1;
+    NOPWAIT();
 }

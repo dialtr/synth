@@ -31,17 +31,31 @@
 #pragma config LVP = OFF
 #pragma config BOREN = 0
 
+
+// Number of keys currently depressed (AKA notes on.)
 static int g_notes_on = 0;
 
-static long int g_base_freq = 20000;
-static long int g_pitch_bend = 8192; 
-static char g_update_frequency = 0;
+// The current value of the pitch bend wheel (center is 8192.)
+static long int g_pitch_bend = 8192;
+
+// The freqency of the note on
+static long int g_note_on_freq = 20000;
+
+// The current frequency that is actually playing.
+static long int g_actual_freq = 20000;
+
+// The desired target frequency (calculated as a result of pitch bend, etc,.)
+static long int g_target_freq = 20000;
+
 
 void on_note_off() {
     --g_notes_on;
     if (g_notes_on <= 0) {
         intel_write_timer(0, 1, 0);
         g_notes_on = 0;
+        g_note_on_freq = 20000;
+        g_actual_freq = 20000;
+        g_target_freq = 20000;
     }
 }
 
@@ -62,11 +76,10 @@ void on_midi_active_sensing(char, char, char) {
 
 void on_midi_note_off(char chan, char key, char val) {
     on_note_off();
-    PORTDbits.RD0 = 0;
 }
 
 // This is really OSC / 65535
-#define MIN_FREQ 64
+#define MIN_FREQ 32
 
 long calc_oscillator_frequency(long base_freq, long bender) {
     long new_freq = 0;
@@ -112,15 +125,18 @@ void on_midi_note_on(char chan, char key, char vel) {
     
     // Given the MIDI note, which frequency should we be playing?
     // Calculate the new global frequency and store it there.
-    g_base_freq = midi_note_frequency_for_note(key);
+    g_note_on_freq = midi_note_frequency_for_note(key);
     
-    const long freq = calc_oscillator_frequency(g_base_freq, g_pitch_bend);
+    // What is the ACTUAL frequency we should play based on pitch bend.
+    const long actual = calc_oscillator_frequency(g_note_on_freq, g_pitch_bend);
     
     // Now, set the oscillator frequency, which uses the global frequency.
     // as well as the current pitch bend value.
-    set_oscillator_frequency(freq);
-    
-    PORTDbits.RD0 = 0;
+    set_oscillator_frequency(actual);
+
+    // At the time of note on, frequency values are all the same.
+    g_actual_freq = actual;
+    g_target_freq = actual;
 }
 
 // Configure I/O pins used in the system, set them to their initial state.
@@ -142,7 +158,10 @@ void on_pitch_bend(char chan, char lsb, char msb) {
     pitch_bend <<= 7;
     pitch_bend |= lsb;
     g_pitch_bend = pitch_bend;
-    g_update_frequency = 1;
+    
+    // Calculate the new "target" frequency.
+    g_target_freq = calc_oscillator_frequency(g_note_on_freq, g_pitch_bend);
+
 }
 
 // Perform initial system initialization.
@@ -203,10 +222,19 @@ void loop() {
         byte = ioport_read();
         midi_receive_byte(byte);
     }
-    if (g_update_frequency && g_notes_on) {
-        const long freq = calc_oscillator_frequency(g_base_freq, g_pitch_bend);
-        set_oscillator_frequency(freq);
-        g_update_frequency = 0;
+    
+    // If the note is on and the actual has not reached the target frequency,
+    // Then bump actual in that direction by moving it halfway there.
+    if (g_notes_on && (g_actual_freq != g_target_freq)) {
+        long int delta = 0;
+        if (g_actual_freq < g_target_freq) {
+            delta = ((g_target_freq - g_actual_freq) / 10) + 1;
+            g_actual_freq += delta;
+        } else {
+            delta = ((g_actual_freq - g_target_freq) / 10) + 1;
+            g_actual_freq -= delta;
+        }
+        set_oscillator_frequency(g_actual_freq);
     }
 }
 

@@ -1,0 +1,8 @@
+How did I get pitch bend working?
+
+You can't send the control word for every pitch change. You can only
+sent the control word every once in awhile, perhaps on key down. 
+Otherwise, if you set the control word every time, it results in a
+very audible click.
+
+
