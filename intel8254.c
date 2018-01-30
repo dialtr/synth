@@ -25,15 +25,15 @@ status_t intel_8254_init() {
     // Port D is output
     TRISD = 0;
     
-    // Initialize the 8254 to a known state.  CS, WR are high,
-    // meaning that the chip is not selected or write enabled.
+    // Initialize the 8254 to a known state.  CS, low, WR high,
+    // meaning that the chip is selected but not write enabled.
     // A0, A1 are high, meaning that if a word was written it
     // would go to the control register.
-    PORTDbits.RD2 = 1; // RD2 on the PIC -> CS on the 8254
+    PORTDbits.RD2 = 0; // RD2 on the PIC -> CS on the 8254
     PORTDbits.RD3 = 1; // RD3 on the PIC -> WR on the 8254
     PORTDbits.RD4 = 1; // RD4 on the PIC -> A0 on the 8254
     PORTDbits.RD5 = 1; // RD5 on the PIC -> A1 on the 8254
-    
+     
     return 0;
 }
 
@@ -43,6 +43,7 @@ status_t intel_8254_init() {
 // work with an 8 Mhz master clock.  Need to figure out a way to wait
 // minimally based on _XTAL_FREQ to make transfers as fast as possible.
 
+/*
 void intel_8254_transfer_data() {
   // Bring CS, WR LOW, then HIGH to write control word
   // TODO: Break this out into a function
@@ -113,4 +114,59 @@ void intel_8254_set_timer0(unsigned char lsb, unsigned char msb) {
   //intel_8254_transfer_data();
   INTEL_8254_TRANSFER_DATA();
 }
+*/
 
+
+
+
+inline void intel_write_timer(unsigned char timer,
+                              unsigned char lsb,
+                              unsigned char msb) {
+    // The timer must be 0, 1 or 2.
+    timer &= 0x3;
+    if (timer == 3) {
+        return;
+    }
+    
+    const unsigned char control_word = (timer << 6) |
+                                       (0x3 << 4) |
+                                       (0b00000110);
+    
+    // Write control word
+    PORTB = control_word;
+    PORTDbits.RD4 = 1; // RD4 on the PIC -> A0 on the 8254
+    PORTDbits.RD5 = 1; // RD5 on the PIC -> A1 on the 8254
+    
+    PORTDbits.RD3 = 0;
+    NOPWAIT();
+    PORTDbits.RD3 = 1;
+    
+        // Set up address for data words
+    switch (timer) {
+        case 0:
+            PORTDbits.RD4 = 0; // RD4 on the PIC -> A0 on the 8254
+            PORTDbits.RD5 = 0; // RD5 on the PIC -> A1 on the 8254
+            break;
+        case 1:
+            PORTDbits.RD4 = 1; // RD4 on the PIC -> A0 on the 8254
+            PORTDbits.RD5 = 0; // RD5 on the PIC -> A1 on the 8254
+            break;
+        case 2:
+            PORTDbits.RD4 = 0; // RD4 on the PIC -> A0 on the 8254
+            PORTDbits.RD5 = 1; // RD5 on the PIC -> A1 on the 8254
+            break;
+    }
+    
+    
+    // Write LSB
+    PORTB = lsb;
+    PORTDbits.RD3 = 0;
+    NOPWAIT();
+    PORTDbits.RD3 = 1;
+    
+    // Write MSB
+    PORTB = msb;
+    PORTDbits.RD3 = 0;
+    NOPWAIT();
+    PORTDbits.RD3 = 1;
+}

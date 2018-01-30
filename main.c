@@ -34,13 +34,13 @@
 static int g_notes_on = 0;
 
 static long int g_base_freq = 20000;
-static long int g_pitch_bend = 0; 
+static long int g_pitch_bend = 8192; 
 static char g_update_frequency = 0;
 
 void on_note_off() {
     --g_notes_on;
     if (g_notes_on <= 0) {
-        INTEL_8254_WRITE_TIMER(0, 1, 0);
+        intel_write_timer(0, 1, 0);
         g_notes_on = 0;
     }
 }
@@ -62,25 +62,11 @@ void on_midi_active_sensing(char, char, char) {
 
 void on_midi_note_off(char chan, char key, char val) {
     on_note_off();
+    PORTDbits.RD0 = 0;
 }
-
-/*
-// Convert a frequency to the counter values needed to generate it, assuming
-// the master DCO clock frequency is fixed at 2 mhz.
-// TODO(tdial): Don't assume 2mhz
-void tone_to_counter_values(long freq,
-                            unsigned char* lsb, 
-                            unsigned char* msb)
-{
-  const unsigned long clock = 2000000;
-  const unsigned long divisor = clock / freq;
-  *lsb = (unsigned char) (divisor & 0xff);
-  *msb = (unsigned char) ((divisor >> 8) & 0xff);
-}
-*/
 
 // This is really OSC / 65535
-#define MIN_FREQ 123
+#define MIN_FREQ 64
 
 long calc_oscillator_frequency(long base_freq, long bender) {
     long new_freq = 0;
@@ -106,7 +92,7 @@ void set_oscillator_frequency(long freq) {
     const unsigned long divisor = clock / freq;
     const char lsb = (unsigned char) (divisor & 0xff);
     const char msb = (unsigned char) ((divisor >> 8) & 0xff);
-    INTEL_8254_WRITE_TIMER(0,lsb,msb);
+    intel_write_timer(0, lsb, msb);
 }
 
 
@@ -133,6 +119,8 @@ void on_midi_note_on(char chan, char key, char vel) {
     // Now, set the oscillator frequency, which uses the global frequency.
     // as well as the current pitch bend value.
     set_oscillator_frequency(freq);
+    
+    PORTDbits.RD0 = 0;
 }
 
 // Configure I/O pins used in the system, set them to their initial state.
