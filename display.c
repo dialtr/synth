@@ -1,5 +1,6 @@
 #include "display.h"
 #include <xc.h>
+#include <plib/adc.h>
 #include <plib/xlcd.h>
 #include <plib/delays.h>
 #include "config.h"
@@ -41,7 +42,7 @@ void display_clear(void) {
 void display_move(unsigned char row, unsigned char col) {
     // TODO(tdial): I don't think this is right. Need to read the data sheet
     // on the device.
-    const char addr = (40 * row) + col;
+    const char addr = (32 * row) + col;
     while (BusyXLCD());
     SetDDRamAddr(addr);
 }

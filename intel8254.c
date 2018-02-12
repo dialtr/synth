@@ -10,10 +10,10 @@
 #include <delays.h>
 #include "config.h"
 
-#define INTEL_8254_CS PORTDbits.RD2
-#define INTEL_8254_WR PORTDbits.RD3
 #define INTEL_8254_A0 PORTDbits.RD4
 #define INTEL_8254_A1 PORTDbits.RD5
+#define INTEL_8254_CS PORTDbits.RD6
+#define INTEL_8254_WR PORTDbits.RD7
 
 
 // Initialize the Intel 8254 timer to a known state.

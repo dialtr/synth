@@ -25,6 +25,16 @@
       <itemPath>intel8254.c</itemPath>
       <itemPath>midi_notes.c</itemPath>
       <itemPath>display.c</itemPath>
+      <itemPath>busyxlcd.c</itemPath>
+      <itemPath>openxlcd.c</itemPath>
+      <itemPath>putrxlcd.c</itemPath>
+      <itemPath>putsxlcd.c</itemPath>
+      <itemPath>readaddr.c</itemPath>
+      <itemPath>readdata.c</itemPath>
+      <itemPath>setcgram.c</itemPath>
+      <itemPath>setddram.c</itemPath>
+      <itemPath>wcmdxlcd.c</itemPath>
+      <itemPath>writdata.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

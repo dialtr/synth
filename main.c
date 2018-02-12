@@ -10,6 +10,7 @@
  */
 #include <xc.h>
 #include "config.h"
+#include "display.h"
 #include "intel8254.h"
 #include "ioport.h"
 #include "midi.h"
@@ -148,6 +149,9 @@ status_t iopins_init() {
     TRISB = 0;
     PORTB = 0;
     
+    TRISC = 0;
+    PORTC = 0;
+    
     TRISD = 0;
     PORTD = 0;
     
@@ -255,6 +259,16 @@ void main(void) {
         error(status);
     } 
     
+    display_open();
+    
+    display_enable();
+    
+    display_clear();
+    
+    display_move(0, 0);
+    
+    display_write_string("    DIAL ONE    ");
+   
     for (;;) {
         loop();
     }    
