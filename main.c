@@ -66,15 +66,16 @@ void error(status_t c) {
     for (;;);
 }
 
-
 void on_midi_active_sensing(char, char, char) {
     // TODO(tdial): Update event watchdog timer; if we don't get any
     // event or active sensing message in some period of time, we will
-    // want to silence all oscillators. 
+    // want to silence all oscillators.
 }
 
 
 void on_midi_note_off(char chan, char key, char val) {
+    // Turn off LED for note off.
+    PORTDbits.RD1 = 0;
     on_note_off();
 }
 
@@ -118,6 +119,9 @@ void on_midi_note_on(char chan, char key, char vel) {
         return;
     }
     
+    // Light LED for midi note on
+    PORTDbits.RD1 = 1;
+    
     ++g_notes_on;
     
     char lsb = 0;
@@ -146,6 +150,12 @@ status_t iopins_init() {
     
     TRISD = 0;
     PORTD = 0;
+    
+    //for (int i = 0; i < 20; ++i) {
+    //    PORTDbits.RD1 = 1;
+    //    __delay_ms(100);
+    //}
+    //PORTDbits.RD1 = 0;
     
     return 0;
 }

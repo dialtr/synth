@@ -16,7 +16,10 @@ status_t intel_8254_init();
 // Load a new divisor into timer zero for square-wave clock generation.
 //void intel_8254_set_timer0(unsigned char lsb, unsigned char msb);
 
-#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop();
+//#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop();
+
+// Below for 16mhz Master Clock
+#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()
 
 
 inline void intel_write_timer(unsigned char timer,
