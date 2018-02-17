@@ -42,7 +42,7 @@ void display_clear(void) {
 void display_move(unsigned char row, unsigned char col) {
     // TODO(tdial): I don't think this is right. Need to read the data sheet
     // on the device.
-    const char addr = (32 * row) + col;
+    const char addr = (0x40 * row) + col;
     while (BusyXLCD());
     SetDDRamAddr(addr);
 }
@@ -60,4 +60,21 @@ void display_disable(void) {
 void display_write_string(const char* str) {
     while (BusyXLCD());
     putrsXLCD(str);
+}
+
+void display_test(void) {
+    unsigned char pos = 0;
+    for (;;) {
+        display_clear();
+        
+        while (BusyXLCD());
+        SetDDRamAddr(pos);
+        ++pos;
+        
+        while (BusyXLCD());
+        putsXLCD("synthesizer");
+      __delay_ms(100);
+      __delay_ms(100);
+      __delay_ms(100);
+    }
 }

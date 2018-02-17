@@ -53,6 +53,7 @@ void on_note_off() {
     --g_notes_on;
     if (g_notes_on <= 0) {
         intel_write_timer(0, 1, 0);
+        intel_write_timer(1, 1, 0);
         g_notes_on = 0;
         g_note_on_freq = 20000;
         g_actual_freq = 20000;
@@ -102,12 +103,12 @@ long calc_oscillator_frequency(long base_freq, long bender) {
 }
 
 
-void set_oscillator_frequency(long freq) {
+void set_oscillator_frequency(int osc, long freq) {
     const unsigned long clock = 2000000;
     const unsigned long divisor = clock / freq;
     const char lsb = (unsigned char) (divisor & 0xff);
     const char msb = (unsigned char) ((divisor >> 8) & 0xff);
-    intel_write_timer(0, lsb, msb);
+    intel_write_timer(osc, lsb, msb);
 }
 
 
@@ -137,7 +138,9 @@ void on_midi_note_on(char chan, char key, char vel) {
     
     // Now, set the oscillator frequency, which uses the global frequency.
     // as well as the current pitch bend value.
-    set_oscillator_frequency(actual);
+    set_oscillator_frequency(0, actual);
+    set_oscillator_frequency(1, actual+ 50);
+    
 
     // At the time of note on, frequency values are all the same.
     g_actual_freq = actual;
@@ -154,6 +157,8 @@ status_t iopins_init() {
     
     TRISD = 0;
     PORTD = 0;
+    
+    PORTCbits.RC3 = 0;
     
     //for (int i = 0; i < 20; ++i) {
     //    PORTDbits.RD1 = 1;
@@ -248,7 +253,9 @@ void loop() {
             delta = ((g_actual_freq - g_target_freq) / 10) + 1;
             g_actual_freq -= delta;
         }
-        set_oscillator_frequency(g_actual_freq);
+        set_oscillator_frequency(0, g_actual_freq);
+        set_oscillator_frequency(1, g_actual_freq + 50);
+        
     }
 }
 
@@ -266,9 +273,8 @@ void main(void) {
     display_clear();
     
     display_move(0, 0);
-    
-    display_write_string("    DIAL ONE    ");
-   
+    display_write_string("    dial one     ");
+  
     for (;;) {
         loop();
     }    

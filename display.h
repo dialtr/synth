@@ -14,5 +14,5 @@ void display_disable(void);
 
 void display_write_string(const char* str);
 
-
+void display_test(void);
 #endif  // DISPLAY_H_INCLUDED_
