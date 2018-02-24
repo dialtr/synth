@@ -91,6 +91,7 @@ inline void intel_write_timer(unsigned char timer,
     PORTB = lsb;
     INTEL_8254_WR = 0;
     NOPWAIT();
+    // TODO(tdial): Figure out actual delays needed.s
     INTEL_8254_WR = 1;
     
     // Write MSB
