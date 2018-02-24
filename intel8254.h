@@ -19,6 +19,10 @@ status_t intel_8254_init();
 //#define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop();
 
 // Below for 16mhz Master Clock
+// TODO(tdial): Ensure delays are long enough for the 8254.)
+// This defines the delay in cycles needed between operations on the 8254.
+// I suspect that when I moved to 16mhz I didn't do the calculations correctly.
+// This delay must be verified against the data sheet.
 #define NOPWAIT() Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop(); Nop()
 
 

@@ -17,9 +17,11 @@
             <file>file:/Users/tdial/Projects/synth/status.h</file>
             <file>file:/Users/tdial/Projects/synth/intel8254.h</file>
             <file>file:/Users/tdial/Projects/synth/config.h</file>
+            <file>file:/Users/tdial/Projects/synth/openxlcd.c</file>
             <file>file:/Users/tdial/Projects/synth/display.h</file>
             <file>file:/Users/tdial/Projects/synth/main.c</file>
             <file>file:/Users/tdial/Projects/synth/display.c</file>
+            <file>file:/Users/tdial/Projects/synth/midi.h</file>
         </group>
     </open-files>
 </project-private>

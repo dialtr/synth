@@ -12,6 +12,7 @@
 // The baud rate for MIDI data
 #define MIDI_BAUD_RATE  31250
 
+/*
 #define SYS_REALTIME_TIMING_CLOCK  0xf8  // Timing clock sent 24 times/quarter.
 #define SYS_REALTIME_RESERVED_F9   0xf9  // Undefined (Reserved.)
 #define SYS_REALTIME_SEQ_START     0xfa  // Start the current sequence.
@@ -20,7 +21,7 @@
 #define SYS_REALTIME_RESERVED_FD   0xfd  // Undefined (Reserved.)
 #define SYS_REALTIME_ACTIVE_SENSE  0xfe  // Active sensing message (each 300ms.)
 #define SYS_REALTIME_RESET         0xff  // Reset all receivers to power-up.
-
+*/
 
 /*
  * The midi_event_callback_t type defines a type for event callback functions

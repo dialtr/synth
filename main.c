@@ -139,7 +139,8 @@ void on_midi_note_on(char chan, char key, char vel) {
     // Now, set the oscillator frequency, which uses the global frequency.
     // as well as the current pitch bend value.
     set_oscillator_frequency(0, actual);
-    set_oscillator_frequency(1, actual+ 50);
+    set_oscillator_frequency(1, actual + 10);
+    set_oscillator_frequency(2, actual);
     
 
     // At the time of note on, frequency values are all the same.
@@ -254,28 +255,87 @@ void loop() {
             g_actual_freq -= delta;
         }
         set_oscillator_frequency(0, g_actual_freq);
-        set_oscillator_frequency(1, g_actual_freq + 50);
-        
+        set_oscillator_frequency(1, g_actual_freq + 10);
+        set_oscillator_frequency(2, g_actual_freq);
     }
+}
+
+void init_spi_dac() {
+
+    ADCON1 = 0;
+    
+    // Configure Port A as outputs.
+    TRISA = 0;
+    
+    // Configure Pin C5 as an output; this is the SDO pin on the PIC.
+    TRISCbits.TRISC5 = 0;
+    
+    // Configure C3 as output (this is SCK might not be necessary)
+    TRISCbits.TRISC3 = 0;
+    
+    // Configure Pin C4 as an input; this is the SDI pin on the PIC.
+    TRISCbits.TRISC4 = 1;
+    
+    // We're using A1 as our chip select. Initialize to HIGH (deselected.)
+    LATAbits.LATA1 = 1;
+    
+    OpenSPI(SPI_FOSC_4, MODE_00, SMPEND); 
+    //OpenSPI(SPI_FOSC_64, MODE_11, SMPEND); */  
+}
+
+void write_dac_a(unsigned short data) {
+    unsigned short msb = 0;
+    unsigned short lsb = 0;
+    unsigned short dummy = 0;
+    
+    // Set up lsb and msb for writing value. value is in twelve bits.
+    lsb = (data & 0x00ff);
+    msb = ((data >> 8) & 0x000f);
+    
+    // Top four bits of msb contain gain selection and SHDN for
+    // active. Gain selection here is 1x.
+    msb |= (0b00110000);
+    
+    // Select chip
+    LATAbits.LATA1 = 0;
+    
+    Nop();
+    Nop();
+    
+    WriteSPI(msb);
+    WriteSPI(lsb);
+    
+    LATAbits.LATA1 = 1;
 }
 
 // Entry Point
 void main(void) {
+    
     status_t status = system_init();
     if (status) {
         error(status);
     } 
+        
+    //display_open();
     
-    display_open();
+    init_spi_dac();
     
-    display_enable();
+    //display_enable();
     
-    display_clear();
+    //display_clear();
     
-    display_move(0, 0);
-    display_write_string("    dial one     ");
+    //display_move(0, 0);
+    //display_write_string("    dial one     ");
   
+    unsigned short x = 0;
+    
+    
     for (;;) {
         loop();
+        //write_dac_a(x++);
+        write_dac_a(4000);
+        //if (x == 4000) {
+        //    x = 0;
+        //}
     }    
 }
