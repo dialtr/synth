@@ -2,6 +2,13 @@
 
 # DIAL-1 Synthesizer
 
+## CAVEAT
+
+This is old, work-in-progress code! Please don't rely on it as a sterling
+example for how to write code for Microchip controllers.
+
+## About
+
 This project contains the source code for my first synthesizer design. An
 overarching goal of this project is to learn more about electronics design
 as well as microcontroller programming. Accordingly, a key goal of this
